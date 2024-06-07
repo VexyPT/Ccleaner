@@ -5,19 +5,19 @@ from tkinter import messagebox, ttk
 import platform
 import psutil
 import threading
-
-try:
-    import psutil_sensors
-except ImportError:
-    psutil_sensors = None
+import subprocess
+import wmi
 
 def limpar_cache():
+    global stop_cleanup
+    stop_cleanup = False
     if messagebox.askyesno("Confirmação", "Tem certeza de que deseja limpar o cache? Essa ação não pode ser desfeita."):
         progress_window = tk.Toplevel(root)
         progress_window.title("Limpando Cache")
         progress_window.configure(bg="white")
         progress_window.geometry("300x100")
         progress_window.resizable(False, False)
+        progress_window.protocol("WM_DELETE_WINDOW", stop_cleanup_cleanup)
 
         progress_label = tk.Label(progress_window, text="Limpando...", bg="white", font=('Helvetica', 14))
         progress_label.pack(pady=10)
@@ -28,7 +28,12 @@ def limpar_cache():
         progress_thread = threading.Thread(target=limpar_cache_thread, args=(progress_bar,))
         progress_thread.start()
 
+def stop_cleanup_cleanup():
+    global stop_cleanup
+    stop_cleanup = True
+
 def limpar_cache_thread(progress_bar):
+    global stop_cleanup
     diretorios = [
         os.path.join(os.getenv("LOCALAPPDATA"), "Temp"),
         os.path.join(os.getenv("AppData"), "Mozilla\\Firefox\\Profiles"),
@@ -40,18 +45,22 @@ def limpar_cache_thread(progress_bar):
         os.path.join(os.getenv("AppData"), "Opera Software\\Opera GX Stable\\Cache"),
         os.path.join(os.getenv("AppData"), "BraveSoftware\\Brave-Browser\\User Data\\Cache"),
         os.path.join(os.getenv("AppData"), "Roblox\\Versions\\version-...\\Local Storage"),
-        # Adicione mais diretórios aqui conforme necessário
     ]
     
     for diretorio in diretorios:
+        if stop_cleanup:
+            break
         for raiz, _, arquivos in os.walk(diretorio):
+            if stop_cleanup:
+                break
             for arquivo in arquivos:
                 try:
                     send2trash.send2trash(os.path.join(raiz, arquivo))
                 except Exception as e:
                     print(f"Erro ao excluir {os.path.join(raiz, arquivo)}: {e}")
                     continue
-    messagebox.showinfo("Cache Limpo", "Cache limpo com sucesso!")
+    if not stop_cleanup:
+        messagebox.showinfo("Cache Limpo", "Cache limpo com sucesso!")
 
 def informacoes_do_sistema():
     sistema = platform.system()
@@ -72,7 +81,6 @@ def informacoes_do_sistema():
     ipv4 = get_ipv4_address()
     temperatura_cpu = get_cpu_temperature()
     temperatura_gpu = get_gpu_temperature()
-    # Adicione mais informações conforme necessário
 
     info_window = tk.Toplevel(root)
     info_window.title("Informações do Sistema")
@@ -108,26 +116,26 @@ def get_ipv4_address():
     return socket.gethostbyname_ex(socket.gethostname())[-1]
 
 def get_cpu_temperature():
-    if psutil_sensors:
-        sensors = psutil_sensors.sensors_temperatures()
-        if 'coretemp' in sensors:
-            for entry in sensors['coretemp']:
-                if entry.label == 'Package id 0':
-                    return entry.current
-    return "N/A"
+    if platform.system() == "Windows":
+        return get_windows_cpu_temperature()
+    else:
+        return "N/A"  # Implementação para outros sistemas operacionais
+
+def get_windows_cpu_temperature():
+    try:
+        w = wmi.WMI(namespace="root\\OpenHardwareMonitor")
+        temperature_infos = w.Sensor()
+        cpu_temperature = [sensor.Value for sensor in temperature_infos if "CPU" in sensor.Name]
+        if cpu_temperature:
+            return f"{cpu_temperature[0]} °C"
+        else:
+            return "N/A"
+    except Exception as e:
+        print(f"Erro ao obter a temperatura da CPU: {e}")
+        return "N/A"
 
 def get_gpu_temperature():
-    if psutil_sensors:
-        sensors = psutil_sensors.sensors_temperatures()
-        if 'amdgpu' in sensors:
-            for entry in sensors['amdgpu']:
-                if entry.label == 'edge':
-                    return entry.current
-        if 'nouveau' in sensors:
-            for entry in sensors['nouveau']:
-                if entry.label == 'GPU':
-                    return entry.current
-    return "N/A"
+    return "N/A" 
 
 root = tk.Tk()
 root.title("Utilitário de Limpeza e Informações do Sistema")
