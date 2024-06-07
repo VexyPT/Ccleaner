@@ -11,7 +11,7 @@ import wmi
 def limpar_cache():
     global stop_cleanup
     stop_cleanup = False
-    if messagebox.askyesno("Confirmação", "Tem certeza de que deseja limpar o cache? Essa ação não pode ser desfeita."):
+    if messagebox.askyesno("Confirmação", "Tem certeza de que deseja limpar o cache do sistema? Essa ação não pode ser desfeita."):
         progress_window = tk.Toplevel(root)
         progress_window.title("Limpando Cache")
         progress_window.configure(bg="white")
@@ -35,17 +35,28 @@ def stop_cleanup_cleanup():
 def limpar_cache_thread(progress_bar):
     global stop_cleanup
     diretorios = [
-        os.path.join(os.getenv("LOCALAPPDATA"), "Temp"),
-        os.path.join(os.getenv("AppData"), "Mozilla\\Firefox\\Profiles"),
-        os.path.join(os.getenv("AppData"), "Google\\Chrome\\User Data"),
-        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Windows\\INetCache"),
-        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Windows\\Caches"),
-        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Edge\\User Data"),
-        os.path.join(os.getenv("AppData"), "discord\\Cache"),
-        os.path.join(os.getenv("AppData"), "Opera Software\\Opera GX Stable\\Cache"),
-        os.path.join(os.getenv("AppData"), "BraveSoftware\\Brave-Browser\\User Data\\Cache"),
-        os.path.join(os.getenv("AppData"), "Roblox\\Versions\\version-...\\Local Storage"),
+        os.path.join(os.getenv("LOCALAPPDATA"), "Temp"),  # Pasta Temp local
+        os.path.join(os.getenv("AppData"), "Mozilla\\Firefox\\Profiles"),  # Perfis do Firefox
+        os.path.join(os.getenv("AppData"), "Google\\Chrome\\User Data"),  # Dados do usuário do Chrome
+        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Windows\\INetCache"),  # Cache do Internet Explorer
+        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Windows\\Caches"),  # Cache do sistema Windows
+        os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft\\Edge\\User Data"),  # Dados do usuário do Microsoft Edge
+        os.path.join(os.getenv("AppData"), "discord\\Cache"),  # Cache do Discord
+        os.path.join(os.getenv("AppData"), "Opera Software\\Opera GX Stable\\Cache"),  # Cache do Opera GX
+        os.path.join(os.getenv("AppData"), "BraveSoftware\\Brave-Browser\\User Data\\Cache"),  # Cache do Brave Browser
+        os.path.join(os.getenv("AppData"), "Roblox\\Versions\\version-...\\Local Storage"),  # Armazenamento local do Roblox
+        os.path.join(os.getenv("AppData"), "Microsoft\\Windows\\Explorer\\Recent"),  # Pastas recentes do Windows Explorer
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\Cache"),  # Cache do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\databases"),  # Bancos de dados do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\GPUCache"),  # Cache de GPU do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\IndexedDB"),  # Banco de dados indexado do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\Local Storage"),  # Armazenamento local do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Microsoft\\Teams\\tmp"),  # Temp do Microsoft Teams
+        os.path.join(os.getenv("AppData"), "Steam\\htmlcache"),  # Cache HTML do Steam
+        os.path.join(os.getenv("AppData"), "Steam\\config\\htmlcache"),  # Configuração do cache HTML do Steam
+        # Adicionar mais no futuro
     ]
+
     
     for diretorio in diretorios:
         if stop_cleanup:
@@ -60,7 +71,7 @@ def limpar_cache_thread(progress_bar):
                     print(f"Erro ao excluir {os.path.join(raiz, arquivo)}: {e}")
                     continue
     if not stop_cleanup:
-        messagebox.showinfo("Cache Limpo", "Cache limpo com sucesso!")
+        messagebox.showinfo("Cache Limpo", "Cache limpo com sucesso! Verifique sua lixeira")
 
 def informacoes_do_sistema():
     sistema = platform.system()
